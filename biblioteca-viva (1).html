@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Biblioteca de la ofi</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --border: rgba(0,0,0,0.1);
+    --border-md: rgba(0,0,0,0.18);
+    --text: #1A1A1A;
+    --muted: #6B6B6B;
+    --accent: #2D5016;
+    --accent-light: #EAF3DE;
+    --accent-text: #3B6D11;
+    --warn: #854F0B;
+    --warn-bg: #FAEEDA;
+    --danger: #A32D2D;
+    --danger-bg: #FCEBEB;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── HEADER ── */
+  header { background: var(--accent); padding: 2rem 1.5rem 1.5rem; }
+  header h1 { font-family: 'DM Serif Display', serif; font-size: 2rem; color: #fff; font-weight: 400; letter-spacing: -0.01em; }
+  header p { font-size: 14px; color: rgba(255,255,255,0.65); margin-top: 4px; }
+
+  /* ── TABS ── */
+  .tabs { display: flex; background: var(--accent); padding: 0 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.15); gap: 0; overflow-x: auto; }
+  .tab { font-size: 13px; font-weight: 500; padding: 10px 16px; border: none; background: none; color: rgba(255,255,255,0.55); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: color 0.15s; }
+  .tab.active { color: #fff; border-bottom-color: #fff; }
+  .tab:hover:not(.active) { color: rgba(255,255,255,0.8); }
+
+  /* ── CONTENT ── */
+  .content { max-width: 640px; margin: 0 auto; padding: 1.5rem; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── CARDS ── */
+  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 12px; }
+  .card-title { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+  .card-sub { font-size: 13px; color: var(--muted); }
+
+  /* ── METRICS ── */
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
+  .metric { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 1rem; text-align: center; }
+  .metric-val { font-family: 'DM Serif Display', serif; font-size: 2.5rem; color: var(--text); }
+  .metric-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* ── FORM ── */
+  label { font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin: 1rem 0 6px; }
+  input[type=text], input[type=date], select {
+    width: 100%; padding: 10px 12px; font-size: 14px; font-family: 'DM Sans', sans-serif;
+    border: 0.5px solid var(--border-md); border-radius: var(--radius-sm);
+    background: var(--bg); color: var(--text); outline: none; appearance: none;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  .btn { display: inline-block; padding: 10px 22px; font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; border-radius: var(--radius-sm); cursor: pointer; transition: opacity 0.15s, transform 0.1s; border: none; }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-ghost { background: transparent; border: 0.5px solid var(--border-md); color: var(--text); }
+  .btn-sm { padding: 6px 14px; font-size: 13px; }
+  .btn-danger { background: transparent; border: 0.5px solid var(--danger); color: var(--danger); }
+  .mt { margin-top: 1rem; }
+
+  /* ── BADGES ── */
+  .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; }
+  .badge-in { background: var(--accent-light); color: var(--accent-text); }
+  .badge-out { background: var(--warn-bg); color: var(--warn); }
+  .badge-late { background: var(--danger-bg); color: var(--danger); }
+
+  /* ── ROW ── */
+  .row { display: flex; align-items: center; gap: 12px; }
+  .spacer { flex: 1; }
+
+  /* ── HISTORIAL ── */
+  .h-row { display: flex; align-items: baseline; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+  .h-date { color: var(--muted); min-width: 82px; }
+
+  /* ── EMPTY / LOADING ── */
+  .empty { text-align: center; padding: 2.5rem 1rem; color: var(--muted); font-size: 14px; }
+  .loading { text-align: center; padding: 2rem; color: var(--muted); font-size: 14px; }
+
+  /* ── TOAST ── */
+  #toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: #fff; padding: 10px 20px; border-radius: var(--radius-sm); font-size: 14px; opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none; z-index: 99; white-space: nowrap; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── SEARCH ── */
+  .search-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+  .search-row input { flex: 1; }
+  .filters { display: flex; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .f-btn { font-size: 12px; padding: 5px 14px; border-radius: 20px; cursor: pointer; border: 0.5px solid var(--border-md); background: transparent; color: var(--muted); font-family: 'DM Sans', sans-serif; }
+  .f-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ── SETUP PANEL ── */
+  .setup-banner { background: var(--warn-bg); border: 0.5px solid var(--warn); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-size: 14px; color: var(--warn); }
+  .setup-banner a { color: var(--warn); font-weight: 500; }
+
+  /* ── SECTION-DIVIDER ── */
+  .sec-label { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin: 1.5rem 0 10px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 420px) { .metrics { grid-template-columns: 1fr 1fr; } header h1 { font-size: 1.6rem; } }
+</style>
+</head>
+<body>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!--  ⚙️  CONFIGURACIÓN — reemplazá esta URL  -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<script>
+  const SCRIPT_URL = "PEGAR_ACÁ_LA_URL_DEL_WEB_APP";
+</script>
+
+<header>
+  <h1>Biblioteca de la ofi</h1>
+  <p>Préstamos autogestivos · datos compartidos</p>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="goTab('home',this)">Inicio</button>
+  <button class="tab" onclick="goTab('prestamo',this)">Sacar libro</button>
+  <button class="tab" onclick="goTab('devolucion',this)">Devolver</button>
+  <button class="tab" onclick="goTab('catalogo',this)">Catálogo</button>
+  <button class="tab" onclick="goTab('setup',this)">⚙ Config</button>
+</div>
+
+<div class="content">
+
+  <!-- ── INICIO ─────────────────────── -->
+  <div id="tab-home" class="section active">
+    <div id="setup-warn" class="setup-banner" style="display:none">
+      ⚠ Configurá la URL del servidor en la pestaña <strong>⚙ Config</strong> para que los datos sean compartidos.
+    </div>
+    <div class="metrics" id="metrics"><div class="loading">Cargando...</div></div>
+    <p class="sec-label">Libros en préstamo</p>
+    <div id="prestados-list"></div>
+    <p class="sec-label">Historial reciente</p>
+    <div id="historial-list"></div>
+  </div>
+
+  <!-- ── SACAR LIBRO ─────────────────── -->
+  <div id="tab-prestamo" class="section">
+    <div class="card">
+      <p class="card-title">Registrar préstamo</p>
+      <p class="card-sub">Completá los datos y listo — nadie más tiene que hacer nada.</p>
+      <label>Tu nombre completo</label>
+      <input type="text" id="p-nombre" placeholder="Ej: Ana García" />
+      <label>Libro a sacar</label>
+      <select id="p-libro"><option value="">— elegí un libro —</option></select>
+      <label>Fecha de devolución estimada</label>
+      <input type="date" id="p-fecha" />
+      <div class="mt">
+        <button class="btn btn-primary" onclick="registrarPrestamo()">Confirmar préstamo</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-title">Agregar libro al catálogo</p>
+      <p class="card-sub">¿Traés un libro nuevo a la biblioteca?</p>
+      <label>Título</label>
+      <input type="text" id="n-titulo" placeholder="Ej: El nombre de la rosa" />
+      <label>Autor/a</label>
+      <input type="text" id="n-autor" placeholder="Ej: Umberto Eco" />
+      <label>Género (opcional)</label>
+      <input type="text" id="n-genero" placeholder="Ej: Ficción, Negocios, Ciencia…" />
+      <div class="mt">
+        <button class="btn btn-ghost" onclick="agregarLibro()">Agregar al catálogo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DEVOLUCION ─────────────────── -->
+  <div id="tab-devolucion" class="section">
+    <div class="card">
+      <p class="card-title">Registrar devolución</p>
+      <p class="card-sub">Solo aparecen los libros que están prestados.</p>
+      <label>Libro a devolver</label>
+      <select id="d-libro" onchange="showDevInfo()"><option value="">— elegí un libro —</option></select>
+      <div id="d-info" style="display:none;margin-top:12px;"></div>
+      <div class="mt">
+        <button class="btn btn-primary" onclick="registrarDevolucion()">Confirmar devolución</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CATÁLOGO ─────────────────── -->
+  <div id="tab-catalogo" class="section">
+    <div class="search-row">
+      <input type="text" id="search" placeholder="Buscar por título o autor…" oninput="renderCatalogo()" />
+    </div>
+    <div class="filters">
+      <button class="f-btn active" onclick="setFiltro('todos',this)">Todos</button>
+      <button class="f-btn" onclick="setFiltro('disponible',this)">Disponibles</button>
+      <button class="f-btn" onclick="setFiltro('prestado',this)">Prestados</button>
+    </div>
+    <div id="catalogo-list"></div>
+  </div>
+
+  <!-- ── CONFIG ─────────────────────── -->
+  <div id="tab-setup" class="section">
+    <div class="card">
+      <p class="card-title">Configurar Google Sheets</p>
+      <p class="card-sub" style="margin-bottom:1rem;">Seguí estos pasos una sola vez. Después compartís este archivo HTML y todos usan la misma hoja.</p>
+
+      <div style="font-size:14px;line-height:1.8;color:var(--text);">
+        <p><strong>Paso 1</strong> — Abrí <a href="https://script.google.com" target="_blank" style="color:var(--accent-text);">script.google.com</a> y creá un proyecto nuevo.</p>
+        <p style="margin-top:8px;"><strong>Paso 2</strong> — Pegá el código del archivo <code>biblioteca-apps-script.gs</code> que te pasé.</p>
+        <p style="margin-top:8px;"><strong>Paso 3</strong> — Hacé clic en <em>Implementar → Nueva implementación</em>. Tipo: <em>Aplicación web</em>. Ejecutar como: <em>Yo</em>. Acceso: <em>Cualquier persona</em>.</p>
+        <p style="margin-top:8px;"><strong>Paso 4</strong> — Copiá la URL que aparece y pegala acá abajo.</p>
+        <p style="margin-top:8px;"><strong>Paso 5</strong> — Guardá y compartí este archivo HTML con tu equipo.</p>
+      </div>
+
+      <label style="margin-top:1.5rem;">URL del Web App</label>
+      <input type="text" id="cfg-url" placeholder="https://script.google.com/macros/s/…/exec" />
+      <div class="mt">
+        <button class="btn btn-primary" onclick="guardarConfig()">Guardar y conectar</button>
+      </div>
+      <div id="cfg-status" style="margin-top:12px;font-size:13px;color:var(--muted);"></div>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── Estado global ──────────────────────
+let db = { libros: [], prestamos: [], historial: [] };
+let filtro = 'todos';
+
+// ── URL del servidor ───────────────────
+function getURL() {
+  const saved = localStorage.getItem('biblio_url');
+  return (saved && saved.startsWith('https://')) ? saved : SCRIPT_URL;
+}
+
+function guardarConfig() {
+  const url = document.getElementById('cfg-url').value.trim();
+  if (!url.startsWith('https://')) { toast('URL inválida'); return; }
+  localStorage.setItem('biblio_url', url);
+  document.getElementById('cfg-status').textContent = '✓ URL guardada. Recargando datos…';
+  loadData();
+  toast('✓ Configuración guardada');
+}
+
+// ── API ────────────────────────────────
+async function api(method, params) {
+  const url = getURL();
+  if (!url || url === 'PEGAR_ACÁ_LA_URL_DEL_WEB_APP') throw new Error('Sin URL');
+  if (method === 'GET') {
+    const qs = new URLSearchParams({ action: params.action });
+    const r = await fetch(url + '?' + qs);
+    return r.json();
+  } else {
+    const r = await fetch(url, { method: 'POST', body: JSON.stringify(params) });
+    return r.json();
+  }
+}
+
+// ── Carga de datos ─────────────────────
+async function loadData() {
+  const url = getURL();
+  if (!url || url === 'PEGAR_ACÁ_LA_URL_DEL_WEB_APP') {
+    document.getElementById('setup-warn').style.display = 'block';
+    renderMetrics(); renderPrestados(); renderHistorial();
+    return;
+  }
+  document.getElementById('setup-warn').style.display = 'none';
+  try {
+    const data = await api('GET', { action: 'getData' });
+    if (data.error) throw new Error(data.error);
+    db = data;
+  } catch(e) {
+    toast('Error conectando al servidor');
+  }
+  renderHome();
+}
+
+// ── Tabs ───────────────────────────────
+function goTab(tab, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+  if (tab === 'home') loadData();
+  if (tab === 'prestamo') fillSelect('p-libro', false);
+  if (tab === 'devolucion') { fillSelect('d-libro', true); document.getElementById('d-info').style.display='none'; }
+  if (tab === 'catalogo') renderCatalogo();
+  if (tab === 'setup') {
+    const saved = localStorage.getItem('biblio_url');
+    if (saved) document.getElementById('cfg-url').value = saved;
+  }
+}
+
+// ── Helpers ────────────────────────────
+function formatDate(s) {
+  if (!s) return '—';
+  const [y,m,d] = s.split('-');
+  return `${d}/${m}/${y}`;
+}
+function isLate(s) { return s && new Date(s) < new Date(); }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── Render Home ────────────────────────
+function renderHome() { renderMetrics(); renderPrestados(); renderHistorial(); }
+
+function renderMetrics() {
+  const total = db.libros.length;
+  const pCount = db.prestamos.length;
+  const atrasados = db.prestamos.filter(p => isLate(p.fechaDev)).length;
+  document.getElementById('metrics').innerHTML = `
+    <div class="metric"><div class="metric-val">${total - pCount}</div><div class="metric-label">Disponibles</div></div>
+    <div class="metric"><div class="metric-val">${pCount}</div><div class="metric-label">En préstamo</div></div>
+    <div class="metric"><div class="metric-val">${total}</div><div class="metric-label">Total libros</div></div>
+    <div class="metric"><div class="metric-val" style="color:${atrasados?'var(--danger)':'var(--text)'}">${atrasados}</div><div class="metric-label">Atrasados</div></div>
+  `;
+}
+
+function renderPrestados() {
+  const el = document.getElementById('prestados-list');
+  if (!db.prestamos.length) { el.innerHTML = '<div class="empty">Todos los libros están disponibles 🎉</div>'; return; }
+  el.innerHTML = db.prestamos.map(p => {
+    const late = isLate(p.fechaDev);
+    return `<div class="card">
+      <div class="row">
+        <div>
+          <p class="card-title">${p.titulo}</p>
+          <p class="card-sub">${p.persona} · devuelve el ${formatDate(p.fechaDev)}</p>
+        </div>
+        <div class="spacer"></div>
+        <span class="badge ${late?'badge-late':'badge-out'}">${late?'Atrasado':'Prestado'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderHistorial() {
+  const el = document.getElementById('historial-list');
+  const items = [...db.historial].reverse().slice(0, 10);
+  if (!items.length) { el.innerHTML = '<div class="empty">Sin movimientos todavía</div>'; return; }
+  el.innerHTML = items.map(h => `
+    <div class="h-row">
+      <span class="h-date">${formatDate(h.fecha)}</span>
+      <span class="badge ${h.tipo==='prestamo'?'badge-out':'badge-in'}" style="font-size:10px;">${h.tipo==='prestamo'?'salida':'entrada'}</span>
+      <span>${h.titulo}</span>
+      <span style="color:var(--muted)">— ${h.persona}</span>
+    </div>
+  `).join('');
+}
+
+// ── Selects ─────────────────────────────
+function fillSelect(id, soloPresados) {
+  const prestadosIds = db.prestamos.map(p => p.libroId);
+  const sel = document.getElementById(id);
+  sel.innerHTML = '<option value="">— elegí un libro —</option>';
+  const libros = soloPresados
+    ? db.libros.filter(l => prestadosIds.includes(l.id))
+    : db.libros.filter(l => !prestadosIds.includes(l.id));
+  libros.forEach(l => {
+    const o = document.createElement('option');
+    o.value = l.id; o.textContent = l.titulo;
+    sel.appendChild(o);
+  });
+}
+
+function showDevInfo() {
+  const id = parseInt(document.getElementById('d-libro').value);
+  const info = document.getElementById('d-info');
+  if (!id) { info.style.display = 'none'; return; }
+  const p = db.prestamos.find(p => p.libroId === id);
+  if (!p) { info.style.display = 'none'; return; }
+  const late = isLate(p.fechaDev);
+  info.style.display = 'block';
+  info.innerHTML = `<div class="card" style="background:var(--bg);margin:0;">
+    <p class="card-sub">Prestado a: <strong>${p.persona}</strong></p>
+    <p class="card-sub">Desde: ${formatDate(p.fechaOut)}</p>
+    <p class="card-sub">Devuelve: <span style="color:${late?'var(--danger)':'var(--text)'}">${formatDate(p.fechaDev)}</span>${late?' · ⚠ atrasado':''}</p>
+  </div>`;
+}
+
+// ── Acciones ───────────────────────────
+async function registrarPrestamo() {
+  const nombre = document.getElementById('p-nombre').value.trim();
+  const libroId = parseInt(document.getElementById('p-libro').value);
+  const fecha = document.getElementById('p-fecha').value;
+  if (!nombre || !libroId || !fecha) { toast('Completá todos los campos'); return; }
+  const libro = db.libros.find(l => l.id === libroId);
+  try {
+    const r = await api('POST', { action: 'prestamo', libroId, persona: nombre, fechaDev: fecha, titulo: libro.titulo });
+    if (r.error) throw new Error(r.error);
+    toast(`✓ "${libro.titulo}" prestado a ${nombre}`);
+    document.getElementById('p-nombre').value = '';
+    document.getElementById('p-libro').value = '';
+    document.getElementById('p-fecha').value = '';
+    await loadData();
+    fillSelect('p-libro', false);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+async function registrarDevolucion() {
+  const libroId = parseInt(document.getElementById('d-libro').value);
+  if (!libroId) { toast('Elegí un libro'); return; }
+  const p = db.prestamos.find(pr => pr.libroId === libroId);
+  try {
+    const r = await api('POST', { action: 'devolucion', libroId, persona: p?.persona || '' });
+    if (r.error) throw new Error(r.error);
+    toast(`✓ Libro devuelto`);
+    document.getElementById('d-libro').value = '';
+    document.getElementById('d-info').style.display = 'none';
+    await loadData();
+    fillSelect('d-libro', true);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+async function agregarLibro() {
+  const titulo = document.getElementById('n-titulo').value.trim();
+  const autor = document.getElementById('n-autor').value.trim();
+  const genero = document.getElementById('n-genero').value.trim();
+  if (!titulo || !autor) { toast('Título y autor son obligatorios'); return; }
+  try {
+    const r = await api('POST', { action: 'addLibro', titulo, autor, genero });
+    if (r.error) throw new Error(r.error);
+    toast(`✓ "${titulo}" agregado`);
+    document.getElementById('n-titulo').value = '';
+    document.getElementById('n-autor').value = '';
+    document.getElementById('n-genero').value = '';
+    await loadData();
+    fillSelect('p-libro', false);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+async function eliminarLibro(id) {
+  if (!confirm('¿Eliminar este libro del catálogo?')) return;
+  try {
+    const r = await api('POST', { action: 'deleteLibro', id });
+    if (r.error) throw new Error(r.error);
+    toast('Libro eliminado');
+    await loadData();
+    renderCatalogo();
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+// ── Catálogo ───────────────────────────
+function setFiltro(f, btn) {
+  filtro = f;
+  document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCatalogo();
+}
+
+function renderCatalogo() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const prestadosIds = db.prestamos.map(p => p.libroId);
+  let libros = db.libros.filter(l => {
+    const match = l.titulo.toLowerCase().includes(q) || l.autor.toLowerCase().includes(q);
+    const disp = !prestadosIds.includes(l.id);
+    if (filtro === 'disponible') return match && disp;
+    if (filtro === 'prestado') return match && !disp;
+    return match;
+  });
+  const el = document.getElementById('catalogo-list');
+  if (!libros.length) { el.innerHTML = '<div class="empty">Sin resultados</div>'; return; }
+  el.innerHTML = libros.map(l => {
+    const p = db.prestamos.find(pr => pr.libroId === l.id);
+    const disp = !p;
+    const late = p && isLate(p.fechaDev);
+    return `<div class="card">
+      <div class="row">
+        <div style="flex:1;min-width:0;">
+          <p class="card-title">${l.titulo}</p>
+          <p class="card-sub">${l.autor}${l.genero ? ' · ' + l.genero : ''}</p>
+          ${p ? `<p class="card-sub" style="margin-top:4px;">Con ${p.persona} hasta ${formatDate(p.fechaDev)}</p>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+          <span class="badge ${disp?'badge-in':late?'badge-late':'badge-out'}">${disp?'Disponible':late?'Atrasado':'Prestado'}</span>
+          ${disp ? `<button class="btn btn-danger btn-sm" onclick="eliminarLibro(${l.id})">Eliminar</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Init ───────────────────────────────
+loadData();
+</script>
+</body>
+</html>
